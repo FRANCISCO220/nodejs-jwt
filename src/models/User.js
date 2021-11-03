@@ -3,10 +3,25 @@ const {Schema,model} = require('mongoose')
 const bcrypt = require('bcrypt')
 
 const userSchema = new Schema({
-    username:String,
-    email:String,
-    password:String
-})
+    username:{
+        type:String,
+        lowercase:true,
+        required:true,
+        unique:true
+    },
+    email:{
+        type:String,
+        lowercase:true,
+        required:true,
+        unique:true
+    },
+    password:{
+        type:String,
+        required:true,
+    }
+},{
+    timestamps:true
+    })
 
 
 userSchema.methods.encryptPassword = async(password)=>{
