@@ -4,23 +4,48 @@ const config = require('../config')
 
 
 exports.signup = async(req,res,next)=>{
+    
     const {username,email,password} = req.body
     const user = new User({
         username,
         email,
         password
     })
+    let error = user.validateSync();
+    if(user.username === ''){
+        res.status(404).json({
+            message:error.errors['username'].message
+        })
+    }else if(user.email === ''){
+        res.status(404).json({
+            message:error.errors['email'].message
+        })
+    }else if(user.password === ''){
+        res.status(404).json({
+            message:error.errors['password'].message
+        })
+    }
+    try{
     user.password = await user.encryptPassword(user.password)
     await user.save()
     const token = jwt.sign({id:user._id},config.secret,{
         expiresIn:60*60*24
-    })
 
+    })
     res.json({
         auth:true,
         token
     })
+    }catch(err){console.log(
+        res.status(500).json({
+            ok:false,
+            err
+        })
+    )}
 }
+
+
+
 exports.signin = async(req,res,next)=>{
     const {email,password} = req.body
     const user = await User.findOne({email:email})
