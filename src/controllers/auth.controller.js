@@ -69,7 +69,6 @@ exports.signin = async(req,res,next)=>{
 exports.me = async(req,res,next)=>{
 
     
-    const decoded = jwt.verify(token,config.secret)
     const user = await User.findById(req.userId,{password:0})
     if(!user){
         return res.status(404).send('No User Found')
