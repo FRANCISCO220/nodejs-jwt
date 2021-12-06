@@ -7,11 +7,22 @@ const Role = require('../models/Role')
 exports.signup = async(req,res,next)=>{
     
     const {username,email,password,roles} = req.body
+    const emailUniq = await User.findOne({email:email})
+    const usernameUniq = await User.findOne({username:username})
+
+    if(username === '' || email === '' || password === ''){
+        return res.status(404).send('please complete the missing field')
+    }
+    if (email === emailUniq || username === usernameUniq){
+        return res.status(404).send('there is already someone registered with that username or email, please try another')
+    }
+
     const user = new User({
         username,
         email,
         password
     })
+
     if(roles){
         const foundRoles = await Role.find({name:{$in :roles}})
         user.roles = foundRoles.map(role =>role._id)
@@ -19,23 +30,8 @@ exports.signup = async(req,res,next)=>{
         const role = await Role.findOne({name:"user"})
         
         user.roles = [role._id]
-        console.log(user)
+
     }
-   /* let error = user.validateSync();
-    if(user.username === ''){
-        res.status(404).json({
-            message:error.errors['username'].message
-        })
-    }else if(user.email === ''){
-        res.status(404).json({
-            message:error.errors['email'].message
-        })
-    }else if(user.password === ''){
-        res.status(404).json({
-            message:error.errors['password'].message
-        })
-    }*/
-   
     user.password = await user.encryptPassword(user.password)
     await user.save()
     const token = jwt.sign({id:user._id},config.secret,{
